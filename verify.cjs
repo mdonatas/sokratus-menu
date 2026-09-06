@@ -14,10 +14,12 @@ const html = `<!doctype html><html><head><meta name="viewport" content="width=de
 body { margin: 0; font: 16px Arial; } .container { max-width: 1100px; margin: auto; padding: 15px; }
 table { width:100%; border-collapse:collapse; } td,th {padding:12px; border:1px solid #ddd;} .mobile {display:none;}
 @media(max-width:991px){.desktop{display:none}.mobile{display:table}}
-</style></head><body><div class="container">${orderTable(false)}<div class="table-responsive">${orderTable(true)}</div><pre id="results">Running…</pre></div>
+</style></head><body><div class="container"><div class="alert alert-secondary alert-dismissible fade show" role="alert"><p>Prie sumos pridedamas 0.10 Eur administravimo mokestis. Užsakymo terminas.</p><button type="button" class="close">×</button></div><div class="alert" id="other-alert">Other notice</div>${orderTable(false)}<div class="table-responsive">${orderTable(true)}</div><pre id="results">Running…</pre></div>
 <script>
 const originalControls = [...document.querySelectorAll('input')];
 const originalStates = originalControls.map(c => [c.name, c.checked, c.disabled]);
+const originalBanner = document.querySelector('.alert');
+const originalBannerHtml = originalBanner.innerHTML;
 localStorage.setItem('sokratus.menu.extrasCollapsed', String(location.search.includes('collapsed')));
 let requests = 0, events = 0;
 document.addEventListener('change', () => events++);
@@ -32,14 +34,25 @@ window.fetch = async (url, options) => {
 setTimeout(() => {
   const checks = [];
   const check = (condition, name) => checks.push((condition ? 'PASS ' : 'FAIL ') + name);
+  const info = document.querySelector('.sm-info-button');
+  check(info && info.type === 'button' && info.getAttribute('aria-label'), 'accessible non-submit info trigger');
+  check(getComputedStyle(originalBanner).display === 'none', 'banner initially hidden on each load');
+  check(getComputedStyle(document.querySelector('#other-alert')).display !== 'none', 'other alerts untouched');
+  info.click();
+  check(getComputedStyle(originalBanner).display !== 'none' && originalBanner.innerHTML === originalBannerHtml, 'original banner and dismiss control revealed intact');
+  check(!document.querySelector('.sm-info-button') && document.activeElement === originalBanner, 'trigger removed and focus transferred');
   const buttons = [...document.querySelectorAll('.sm-extra-toggle')];
   const initiallyCollapsed = location.search.includes('collapsed');
   check(buttons.length === 2, 'one extras header per layout');
   check(buttons.every(b => b.getAttribute('aria-expanded') === String(!initiallyCollapsed)), 'saved collapse state restored');
+  const checkDays = collapsed => check(buttons.every(b => [...b.closest('tr').cells].slice(1).every(c => getComputedStyle(c).visibility === 'visible' && getComputedStyle(c.querySelector('.sm-weekday')).visibility === (collapsed ? 'hidden' : 'visible'))), 'extras weekday text follows collapse state while cells remain visible');
+  checkDays(initiallyCollapsed);
   buttons[0].click();
+  checkDays(!initiallyCollapsed);
   check(document.querySelectorAll('.sm-extra-hidden').length === (initiallyCollapsed ? 0 : 10), 'toggle changes exactly five rows in both layouts');
   check(localStorage.getItem('sokratus.menu.extrasCollapsed') === String(!initiallyCollapsed), 'toggle preference persisted');
   buttons[1].click();
+  checkDays(initiallyCollapsed);
   check(buttons.every(b => b.getAttribute('aria-expanded') === String(!initiallyCollapsed)), 'mobile and desktop toggles stay synchronized');
   for (const header of document.querySelectorAll('.group-row')) {
     check(header.cells[0].textContent === 'Pusryčiai'

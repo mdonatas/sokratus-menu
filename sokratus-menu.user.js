@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sokratus – menu descriptions in orders
 // @namespace    local.sokratus.menu
-// @version      1.1.0
+// @version      1.2.1
 // @description  Show the weekly menu under order checkboxes, with scrollable day columns.
 // @match        https://sokratus.maitinimoprojektai.lt/order?*
 // @match        https://sokratus.maitinimoprojektai.lt/order
@@ -28,6 +28,15 @@
       box-sizing: border-box; width: 100%; max-width: calc(99rem + 30px);
     }
     .sm-extra-hidden { display: none !important; }
+    .sm-extra-collapsed .sm-weekday { visibility: hidden; }
+    .sm-info-hidden { display: none !important; }
+    .sm-info-button {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; margin-bottom: .5rem; padding: 0;
+      border: 0; border-radius: 50%; background: #eef2f5; color: #34546c;
+      font-size: 1.5rem; cursor: pointer;
+    }
+    .sm-info-button:focus-visible { outline: 2px solid #007bff; outline-offset: 3px; }
     .sm-extra-toggle {
       appearance: none; background: none; border: 0; padding: 0;
       font: inherit; color: inherit; cursor: pointer;
@@ -66,6 +75,25 @@
   `;
   document.head.append(style);
 
+  for (const banner of document.querySelectorAll('.alert')) {
+    if (!normalize(banner.textContent).startsWith('Prie sumos pridedamas')) continue;
+    const info = document.createElement('button');
+    info.type = 'button';
+    info.className = 'sm-info-button';
+    info.textContent = 'ⓘ';
+    info.setAttribute('aria-label', 'Rodyti informaciją apie administravimo mokestį ir užsakymo terminą');
+    info.title = 'Informacija apie mokestį ir užsakymo terminą';
+    banner.classList.add('sm-info-hidden');
+    banner.before(info);
+    info.addEventListener('click', () => {
+      banner.classList.remove('sm-info-hidden');
+      // Transfer keyboard focus before removing the trigger. Retain the original banner and dismiss control.
+      banner.setAttribute('tabindex', '-1');
+      banner.focus({ preventScroll: true });
+      info.remove();
+    }, { once: true });
+  }
+
   const storageKey = 'sokratus.menu.extrasCollapsed';
   let extrasCollapsed = false;
   try { extrasCollapsed = localStorage.getItem(storageKey) === 'true'; } catch { /* Storage may be blocked. */ }
@@ -73,6 +101,7 @@
   function updateExtras() {
     for (const { rows, button } of extraSections) {
       rows.forEach(row => row.classList.toggle('sm-extra-hidden', extrasCollapsed));
+      button.closest('tr').classList.toggle('sm-extra-collapsed', extrasCollapsed);
       button.textContent = `${extrasCollapsed ? '▸' : '▾'} Papildomi`;
       button.setAttribute('aria-expanded', String(!extrasCollapsed));
     }
@@ -112,7 +141,10 @@
       for (const day of weekdays) {
         const cell = document.createElement('th');
         cell.scope = 'col';
-        cell.textContent = day;
+        const text = document.createElement('span');
+        text.className = 'sm-weekday';
+        text.textContent = day;
+        cell.append(text);
         header.append(cell);
       }
     }

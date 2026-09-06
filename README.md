@@ -29,6 +29,11 @@ the rows; existing selections remain selected. All section headings except
 Pusryčiai repeat the weekdays. The order container can grow to fit the table,
 bounded by the viewport, with horizontal scrolling when the table cannot fit.
 
+Version 1.2 hides the Papildomi weekday labels while that section is collapsed.
+The “Prie sumos pridedamas…” banner starts behind an accessible info button.
+Clicking/tapping it reveals the original banner and removes the button until
+the next page load; other alerts are unchanged.
+
 ## Verification
 
 The live pages were inspected read-only. The userscript was tested in an offline
@@ -43,3 +48,5 @@ failed menu request. Verified at 390px and 1280px viewport widths. The fixture
 contains no real authentication ID or child information and mocks all fetches.
 Version 1.1 also passed 112 checks at 1920px and 390px, covering section rows,
 saved collapsed state (`&collapsed`), toggle synchronization, and container width.
+Version 1.2 passed 120 checks at both widths, including weekday visibility and
+the info button's reveal, removal, focus transfer and preservation of banner content.
