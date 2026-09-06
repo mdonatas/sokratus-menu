@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="lt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Savaitės valgiaraščio aprašymai Sokratus maisto užsakymo lentelėje.">
+  <meta name="color-scheme" content="light">
+  <title>Sokratus meniu užsakymuose</title>
+  <style>
+    :root {
+      --ink: #182228;
+      --muted: #59666d;
+      --paper: #f6f8f7;
+      --surface: #ffffff;
+      --line: #dbe3df;
+      --green: #167647;
+      --green-dark: #0f5835;
+      --green-soft: #e8f5ed;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; }
+
+    main {
+      width: min(68rem, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: clamp(2.5rem, 7vw, 6rem) 0 4rem;
+    }
+
+    .eyebrow {
+      margin: 0 0 .75rem;
+      color: var(--green);
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 14ch;
+      margin: 0;
+      font-size: clamp(2.25rem, 7vw, 4.75rem);
+      line-height: 1.02;
+      letter-spacing: -.045em;
+    }
+
+    .intro {
+      max-width: 42rem;
+      margin: 1.25rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(17rem, .65fr);
+      gap: 1rem;
+      margin-top: clamp(2.25rem, 6vw, 4rem);
+    }
+
+    .card {
+      padding: clamp(1.25rem, 4vw, 2rem);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      background: var(--surface);
+      box-shadow: 0 1rem 3rem rgb(24 34 40 / 6%);
+    }
+
+    .step-number {
+      display: inline-grid;
+      width: 2rem;
+      height: 2rem;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      font-weight: 800;
+    }
+
+    h2 {
+      margin: .9rem 0 1.25rem;
+      font-size: 1.35rem;
+      line-height: 1.25;
+    }
+
+    .platforms {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+
+    .platform h3 {
+      margin: 0 0 .55rem;
+      font-size: 1rem;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+    }
+
+    .links a {
+      padding: .4rem .7rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--green-dark);
+      font-size: .9rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .links a:hover,
+    .links a:focus-visible {
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .install-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--green-dark);
+      color: white;
+    }
+
+    .install-card .step-number {
+      background: rgb(255 255 255 / 14%);
+      color: white;
+    }
+
+    .install-card p {
+      margin: 0 0 1.25rem;
+      color: rgb(255 255 255 / 78%);
+    }
+
+    .install {
+      display: block;
+      margin-top: auto;
+      padding: .95rem 1.1rem;
+      border-radius: .7rem;
+      background: white;
+      color: var(--green-dark);
+      font-weight: 850;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .install:hover,
+    .install:focus-visible { background: var(--green-soft); }
+
+    .note {
+      margin: 1rem 0 0;
+      padding: 1rem 1.15rem;
+      border-left: .25rem solid var(--green);
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .privacy {
+      max-width: 47rem;
+      margin: 2rem 0 0;
+      color: var(--muted);
+    }
+
+    .preview {
+      margin-top: clamp(3.5rem, 8vw, 6rem);
+    }
+
+    .preview h2 { margin-bottom: .35rem; }
+
+    .preview > p {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+    }
+
+    .shots {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(14rem, .7fr);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    figure {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      background: var(--surface);
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    figcaption {
+      padding: .7rem 1rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: .75rem;
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    footer p { margin: 0; }
+
+    footer a { color: var(--green-dark); }
+
+    :focus-visible {
+      outline: 3px solid #4bb77e;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 48rem) {
+      .steps,
+      .shots { grid-template-columns: 1fr; }
+      .platforms { grid-template-columns: 1fr; }
+      .shots figure:last-child { max-width: 24rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Jūsų patogumui nuo ChatGPT 🤖❤️</p>
+      <h1>Sokratus meniu užsakymuose</h1>
+      <p class="intro">Parodo savaitės valgiaraščio aprašymus tiesiai Sokratus maisto užsakymo lentelėje.</p>
+    </header>
+
+    <section class="steps" aria-label="Diegimo žingsniai">
+      <div class="card">
+        <span class="step-number" aria-hidden="true">1</span>
+        <h2>Įdiekite „Tampermonkey“</h2>
+        <div class="platforms">
+          <div class="platform">
+            <h3>macOS</h3>
+            <div class="links">
+              <a href="https://www.tampermonkey.net/index.php?browser=safari&amp;locale=lt">Safari</a>
+              <a href="https://www.tampermonkey.net/index.php?browser=chrome&amp;locale=lt">Chrome</a>
+              <a href="https://www.tampermonkey.net/index.php?browser=firefox&amp;locale=lt">Firefox</a>
+            </div>
+          </div>
+          <div class="platform">
+            <h3>iPhone / iPad</h3>
+            <div class="links">
+              <a href="https://www.tampermonkey.net/index.php?browser=safari&amp;locale=lt">Safari</a>
+            </div>
+          </div>
+          <div class="platform">
+            <h3>Android</h3>
+            <div class="links">
+              <a href="https://www.tampermonkey.net/index.php?browser=edge&amp;locale=lt">Edge</a>
+              <a href="https://www.tampermonkey.net/index.php?browser=firefox&amp;locale=lt">Firefox</a>
+            </div>
+          </div>
+          <div class="platform">
+            <h3>Windows</h3>
+            <div class="links">
+              <a href="https://www.tampermonkey.net/index.php?browser=edge&amp;locale=lt">Edge</a>
+              <a href="https://www.tampermonkey.net/index.php?browser=chrome&amp;locale=lt">Chrome</a>
+              <a href="https://www.tampermonkey.net/index.php?browser=firefox&amp;locale=lt">Firefox</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card install-card">
+        <span class="step-number" aria-hidden="true">2</span>
+        <h2>Įdiekite scenarijų</h2>
+        <p>Įdiegę „Tampermonkey“, vieną kartą spustelėkite šią nuorodą ir patvirtinkite diegimą.</p>
+        <a class="install" href="sokratus-menu.user.js">Įdiegti „Sokratus meniu“</a>
+      </div>
+    </section>
+
+    <p class="note"><strong>Svarbu:</strong> „Chrome“ ir „Edge“ gali paprašyti plėtinio nustatymuose įjungti „Allow User Scripts“ arba kūrėjo režimą. „iPhone“ ir „iPad“ įjunkite „Tampermonkey“ Safari plėtinių nustatymuose.</p>
+
+    <p class="privacy">Scenarijuje nėra prisijungimo duomenų. Jis kreipiasi tik į atidarytos Sokratus svetainės meniu puslapį ir niekur kitur nesiunčia jūsų duomenų.</p>
+
+    <section class="preview" aria-labelledby="preview-title">
+      <h2 id="preview-title">Kaip tai atrodo</h2>
+      <p>Valgiaraštis rodomas po kiekvienu pasirinkimu kompiuteryje ir telefone.</p>
+      <div class="shots">
+        <figure>
+          <img src="desktop-maistas.png" alt="Sokratus užsakymo lentelė su pridėtais savaitės valgiaraščio aprašymais kompiuteryje" loading="lazy">
+          <figcaption>Kompiuteryje</figcaption>
+        </figure>
+        <figure>
+          <img src="mobile-maistas.png" alt="Sokratus užsakymo lentelė su pridėtais valgiaraščio aprašymais telefone" loading="lazy">
+          <figcaption>Telefone</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <footer>
+      <p>MIT licencija</p>
+      <p><a href="https://github.com/mdonatas/sokratus-menu">Išeitinis kodas ir pranešimai apie klaidas</a></p>
+    </footer>
+  </main>
+</body>
+</html>

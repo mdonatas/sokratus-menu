@@ -1,8 +1,13 @@
 // ==UserScript==
-// @name         Sokratus – menu descriptions in orders
+// @name         Sokratus – meniu aprašymai užsakymuose
 // @namespace    local.sokratus.menu
 // @version      1.2.1
-// @description  Show the weekly menu under order checkboxes, with scrollable day columns.
+// @description  Parodo savaitės valgiaraščio aprašymus po užsakymo pasirinkimais.
+// @homepageURL  https://mdonatas.github.io/sokratus-menu/
+// @supportURL   https://github.com/mdonatas/sokratus-menu/issues
+// @downloadURL  https://mdonatas.github.io/sokratus-menu/sokratus-menu.user.js
+// @updateURL    https://mdonatas.github.io/sokratus-menu/sokratus-menu.user.js
+// @license      MIT
 // @match        https://sokratus.maitinimoprojektai.lt/order?*
 // @match        https://sokratus.maitinimoprojektai.lt/order
 // @run-at       document-end
