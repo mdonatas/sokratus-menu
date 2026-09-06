@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sokratus – menu descriptions in orders
 // @namespace    local.sokratus.menu
-// @version      1.0.0
+// @version      1.1.0
 // @description  Show the weekly menu under order checkboxes, with scrollable day columns.
 // @match        https://sokratus.maitinimoprojektai.lt/order?*
 // @match        https://sokratus.maitinimoprojektai.lt/order
@@ -24,6 +24,15 @@
   const style = document.createElement('style');
   style.id = 'sm-menu-style';
   style.textContent = `
+    .container.sm-order-container {
+      box-sizing: border-box; width: 100%; max-width: calc(99rem + 30px);
+    }
+    .sm-extra-hidden { display: none !important; }
+    .sm-extra-toggle {
+      appearance: none; background: none; border: 0; padding: 0;
+      font: inherit; color: inherit; cursor: pointer;
+    }
+    .sm-extra-toggle:focus-visible { outline: 2px solid #007bff; outline-offset: 4px; }
     .sm-scroll {
       max-width: 100%; min-width: 0; overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -57,7 +66,56 @@
   `;
   document.head.append(style);
 
+  const storageKey = 'sokratus.menu.extrasCollapsed';
+  let extrasCollapsed = false;
+  try { extrasCollapsed = localStorage.getItem(storageKey) === 'true'; } catch { /* Storage may be blocked. */ }
+  const extraSections = [];
+  function updateExtras() {
+    for (const { rows, button } of extraSections) {
+      rows.forEach(row => row.classList.toggle('sm-extra-hidden', extrasCollapsed));
+      button.textContent = `${extrasCollapsed ? '▸' : '▾'} Papildomi`;
+      button.setAttribute('aria-expanded', String(!extrasCollapsed));
+    }
+  }
+
   for (const table of tables) {
+    table.closest('.container')?.classList.add('sm-order-container');
+    const extraVariants = new Set(['14', '7', '11', '13', '8']);
+    const rows = [...table.rows].filter(row => {
+      const name = row.querySelector('input.order-checkbox')?.name;
+      const match = name && /^\d{4}-\d{2}-\d{2}_2_(\d+)$/.exec(name);
+      return match && extraVariants.has(match[1]);
+    });
+    if (rows.length) {
+      const header = document.createElement('tr');
+      header.className = 'group-row';
+      const label = document.createElement('th');
+      label.scope = 'row';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'sm-extra-toggle';
+      rows.forEach((row, index) => { row.id ||= `sm-extra-${extraSections.length}-${index}`; });
+      button.setAttribute('aria-controls', rows.map(row => row.id).join(' '));
+      button.addEventListener('click', () => {
+        extrasCollapsed = !extrasCollapsed;
+        updateExtras(); // Keep the desktop and mobile versions synchronized.
+        try { localStorage.setItem(storageKey, String(extrasCollapsed)); } catch { /* Still usable without storage. */ }
+      });
+      label.append(button);
+      header.append(label);
+      rows[0].before(header);
+      extraSections.push({ rows, button });
+    }
+    for (const header of table.querySelectorAll('tr.group-row')) {
+      if (normalize(header.cells[0].textContent) === 'Pusryčiai') continue;
+      [...header.cells].slice(1).forEach(cell => cell.remove());
+      for (const day of weekdays) {
+        const cell = document.createElement('th');
+        cell.scope = 'col';
+        cell.textContent = day;
+        header.append(cell);
+      }
+    }
     let wrapper = table.parentElement;
     if (!wrapper.classList.contains('table-responsive')) {
       wrapper = document.createElement('div');
@@ -69,6 +127,7 @@
     wrapper.setAttribute('role', 'region');
     wrapper.setAttribute('aria-label', 'Maisto užsakymas – slinkite horizontaliai');
   }
+  updateExtras();
 
   const status = document.createElement('p');
   status.className = 'sm-menu-status';

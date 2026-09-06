@@ -22,6 +22,13 @@ Both tables scroll horizontally inside their containers and retain the site's
 existing desktop/mobile visibility rules. Reloading or following a week link
 fetches that page's corresponding menu again.
 
+Version 1.1 adds a collapsible **Papildomi** section for Vegetariškas through
+Salotos. It starts expanded and remembers the choice in local storage on that
+browser, synchronized between the desktop/mobile layouts. Collapsing only hides
+the rows; existing selections remain selected. All section headings except
+Pusryčiai repeat the weekdays. The order container can grow to fit the table,
+bounded by the viewport, with horizontal scrolling when the table cannot fit.
+
 ## Verification
 
 The live pages were inspected read-only. The userscript was tested in an offline
@@ -34,3 +41,5 @@ control identity/state, no order events, duplicate execution, text-only menu
 insertion, column widths and contained scrolling. Add `&failure` to exercise a
 failed menu request. Verified at 390px and 1280px viewport widths. The fixture
 contains no real authentication ID or child information and mocks all fetches.
+Version 1.1 also passed 112 checks at 1920px and 390px, covering section rows,
+saved collapsed state (`&collapsed`), toggle synchronization, and container width.
