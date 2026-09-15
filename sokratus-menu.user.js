@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sokratus – meniu aprašymai užsakymuose
 // @namespace    local.sokratus.menu
-// @version      1.2.1
+// @version      1.3.0
 // @description  Parodo savaitės valgiaraščio aprašymus po užsakymo pasirinkimais.
 // @homepageURL  https://mdonatas.github.io/sokratus-menu/
 // @supportURL   https://github.com/mdonatas/sokratus-menu/issues
@@ -75,6 +75,7 @@
     }
     .sm-menu-description ul { list-style: none; margin: 0; padding: 0; }
     .sm-menu-description li + li { margin-top: .3rem; }
+    .sm-menu-variant { margin: .75rem 0 .3rem; font-size: inherit; font-weight: 600; }
     .sm-menu-note { color: #626970; font-size: .8rem; margin: .4rem 0 0; }
     .sm-menu-status { margin: .5rem 0; font-size: .875rem; color: #626970; }
   `;
@@ -196,22 +197,30 @@
       }
     }
     if (![...result.values()].some(items => items.length)) throw new Error('Menu structure not found');
-    return result;
+    const labels = new Map([...doc.querySelectorAll('[role="tab"][href^="#nav-"]')]
+      .map(tab => [tab.getAttribute('href').slice(5), normalize(tab.textContent)]));
+    return { menu: result, labels };
   }
 
-  function lookup(menu, meal, variant, day) {
+  function lookup(menu, meal, variant, day, labels = new Map()) {
     const exact = menu.get(`${meal}_${variant}_${day}`);
     if (exact?.length) return { items: exact };
 
     // These meals have separate order IDs, but are repeated in the main menu tabs.
-    // Only use a shared description when all nonempty versions agree.
+    // Ignore ordering for comparison; retain the first published order for display.
     if ((meal === '1' && variant === '9') || (meal === '3' && variant === '10')) {
-      const candidates = [...menu.entries()]
-        .filter(([key, items]) => key.startsWith(`${meal}_`) && key.endsWith(`_${day}`) && items.length)
-        .map(([, items]) => items);
-      if (candidates.length && candidates.every(items => JSON.stringify(items) === JSON.stringify(candidates[0]))) {
-        return { items: candidates[0] };
+      const groups = new Map();
+      for (const [key, items] of menu) {
+        if (!key.startsWith(`${meal}_`) || !key.endsWith(`_${day}`) || !items.length) continue;
+        const signature = JSON.stringify([...items].sort());
+        const sourceVariant = key.split('_')[1];
+        const label = labels.get(sourceVariant) || `Valgiaraštis ${sourceVariant}`;
+        if (groups.has(signature)) groups.get(signature).labels.push(label);
+        else groups.set(signature, { items, labels: [label] });
       }
+      const alternatives = [...groups.values()];
+      if (alternatives.length === 1) return { items: alternatives[0].items };
+      if (alternatives.length > 1) return { alternatives };
     }
 
     // The order calls this "2 VAR. dviguba porcija"; no separate menu is published.
@@ -240,7 +249,7 @@
         redirect: 'error', signal: controller.signal,
       });
       if (!response.ok) throw new Error('Menu request failed');
-      const menu = parseMenu(new DOMParser().parseFromString(await response.text(), 'text/html'));
+      const { menu, labels } = parseMenu(new DOMParser().parseFromString(await response.text(), 'text/html'));
       let missing = 0;
       let count = 0;
       for (const table of tables) {
@@ -251,18 +260,26 @@
           // UTC avoids both locale parsing and daylight-saving shifts.
           const day = (new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7;
           if (day > 4 || !Number.isFinite(day)) continue;
-          const description = lookup(menu, meal, variant, day);
+          const description = lookup(menu, meal, variant, day, labels);
           const block = document.createElement('div');
           block.className = 'sm-menu-description';
           block.id = `sm-description-${++count}`;
-          const list = document.createElement('ul');
-          for (const item of description.items) {
-            const li = document.createElement('li');
-            li.textContent = item; // Never inject fetched HTML or scripts.
-            list.append(li);
+          for (const section of description.alternatives || [description]) {
+            if (section.labels) {
+              const heading = document.createElement('p');
+              heading.className = 'sm-menu-variant';
+              heading.textContent = section.labels.join(' / ');
+              block.append(heading);
+            }
+            const list = document.createElement('ul');
+            for (const item of section.items) {
+              const li = document.createElement('li');
+              li.textContent = item; // Never inject fetched HTML or scripts.
+              list.append(li);
+            }
+            if (list.childElementCount) block.append(list);
           }
-          if (list.childElementCount) block.append(list);
-          else missing++;
+          if (!block.querySelector('li')) missing++;
           if (description.note) {
             const note = document.createElement('p');
             note.className = 'sm-menu-note';

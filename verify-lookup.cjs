@@ -1,0 +1,26 @@
+// Focused regression checks for shared breakfast/afternoon menu descriptions.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync(`${__dirname}/sokratus-menu.user.js`, 'utf8');
+const lookup = vm.runInNewContext(`(${source.slice(source.indexOf('  function lookup('), source.indexOf('  async function run(')).trim()})`);
+const original = ['Kibinas su vištiena', 'Naminis sultinys su žolelemis', 'Daržoviu šiaudeliai', 'Naturalus jogurtas.'];
+const reordered = [original[3], ...original.slice(0, 3)];
+const menu = new Map([['3_1_3', original], ['3_2_3', reordered], ['3_7_3', []]]);
+const labels = new Map([['1', '1 VAR valgiaraštis'], ['2', '2 VAR valgiaraštis'], ['14', 'Vegetariškas valgiaraštis']]);
+const result = lookup(menu, '3', '10', 3, labels);
+assert.equal(result.items, original, 'same items in a different order display once, retaining original order');
+assert.equal(original[0], 'Kibinas su vištiena', 'comparison does not sort source items in place');
+menu.set('3_14_3', ['Other meal']);
+const different = lookup(menu, '3', '10', 3, labels);
+assert.equal(different.alternatives.length, 2, 'distinct descriptions both displayed');
+assert.equal(different.alternatives[0].labels.join('/'), '1 VAR valgiaraštis/2 VAR valgiaraštis', 'identical variants grouped with their source labels');
+assert.equal(different.alternatives[1].items[0], 'Other meal');
+assert.equal(different.alternatives[1].labels[0], 'Vegetariškas valgiaraštis');
+menu.set('3_14_3', [...original, original[0]]);
+assert.equal(lookup(menu, '3', '10', 3, labels).alternatives.length, 2, 'duplicate item counts are not discarded');
+assert.equal(lookup(new Map(), '3', '10', 3).items.length, 0, 'missing menu still handled');
+const breakfast = new Map([['1_1_0', ['A']], ['1_2_0', ['B']]]);
+assert.equal(lookup(breakfast, '1', '9', 0).alternatives.length, 2, 'breakfast also displays differences');
+assert.equal(lookup(menu, '3', '1', 3).items, original, 'direct variant matching unchanged');
+console.log('PASS: 11 shared-menu regression checks');
